@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Poesía</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Plataforma de Poesía ✨</h1>
+            <p class="subtitle">Transforma tus ideas en versos</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="poem-input">¿Sobre qué quieres escribir un poema?</label>
+                    <textarea 
+                        id="poem-input" 
+                        placeholder="Escribe aquí tu idea, tema o palabra clave... (ej: el amor, la naturaleza, la noche, etc.)"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="max-length">Longitud máxima:</label>
+                        <input type="range" id="max-length" min="100" max="500" value="200">
+                        <span id="max-length-value">200</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="temperature">Creatividad:</label>
+                        <input type="range" id="temperature" min="0.5" max="1.5" step="0.1" value="0.9">
+                        <span id="temperature-value">0.9</span>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="generate-button">
+                    <span class="button-text">Generar Poema</span>
+                    <span class="button-loader" style="display: none;">⏳ Generando...</span>
+                </button>
+            </div>
+
+            <div class="output-section" id="output-section" style="display: none;">
+                <h2>Tu Poema:</h2>
+                <div class="poem-container">
+                    <div id="poem-output" class="poem-text"></div>
+                </div>
+                <button id="copy-btn" class="copy-button">📋 Copiar</button>
+                <button id="new-poem-btn" class="new-poem-button">✨ Nuevo Poema</button>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generando tu poema...</p>
+            </div>
+
+            <div class="error" id="error" style="display: none;">
+                <p id="error-message"></p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Hecho con ❤️ para amantes de la poesía</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
