@@ -45,6 +45,7 @@ class PoetryTrainer:
     def load_poems_from_file(self, file_path: str) -> List[str]:
         """
         Carga poesías desde un archivo de texto
+        Soporta múltiples formatos automáticamente
         
         Args:
             file_path: Ruta al archivo con poesías
@@ -56,8 +57,12 @@ class PoetryTrainer:
         
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            
-            # Dividir por separadores de poemas
+        
+        # Detectar formato: ¿tiene separadores con ===?
+        has_separators = '===' in content
+        
+        if has_separators:
+            # Formato con separadores === POEMA X ===
             poem_blocks = re.split(r'={3,}', content)
             
             for block in poem_blocks:
@@ -68,11 +73,223 @@ class PoetryTrainer:
                 
                 if poem_lines:
                     poem = '\n'.join(poem_lines).strip()
-                    if len(poem) > 50:  # Filtrar poemas muy cortos
+                    if len(poem) > 50:
                         poems.append(poem)
+        else:
+            # Formato libre: detectar poemas por estructura
+            poems = self._extract_poems_from_free_format(content)
         
         print(f"✓ Cargadas {len(poems)} poesías desde {file_path}")
         return poems
+    
+    def _extract_poems_from_free_format(self, content: str) -> List[str]:
+        """
+        Extrae poemas de un formato libre (sin separadores explícitos)
+        Agrupa correctamente todas las líneas de cada poema
+        
+        Args:
+            content: Contenido completo del archivo
+            
+        Returns:
+            Lista de poemas extraídos
+        """
+        poems = []
+        
+        # Detectar y saltar prólogos/prefacios
+        lines = content.split('\n')
+        
+        # Buscar donde terminan los metadatos
+        start_idx = 0
+        for i, line in enumerate(lines[:100]):
+            line_upper = line.strip().upper()
+            if any(keyword in line_upper for keyword in ['AL LECTOR', 'SPLEEN', 'BENDICIÓN', 'EL ALBATROS']):
+                start_idx = i
+                break
+        
+        if start_idx > 0:
+            lines = lines[start_idx:]
+        
+        current_poem_lines = []
+        current_poem_title = None
+        empty_line_count = 0
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Detectar títulos (líneas en mayúsculas, cortas, solas)
+            is_title = (
+                line and
+                len(line) < 100 and 
+                line.isupper() and 
+                not line.endswith(',') and
+                not line.endswith('.') and
+                not line.endswith(';') and
+                not line.endswith(':') and
+                len(line.split()) < 15 and
+                not re.match(r'^\d{4}', line)  # No años
+            )
+            
+            # Detectar metadatos
+            is_metadata = self._is_metadata_line(line) if line else False
+            
+            # Detectar años solos (ej: "1844 (?)")
+            is_year = re.match(r'^\d{4}\s*[\(\)\?]*\s*$', line) if line else False
+            
+            if is_title and not is_metadata:
+                # Nuevo título encontrado: guardar poema anterior si existe
+                if current_poem_lines and len(current_poem_lines) >= 3:
+                    poem = '\n'.join(current_poem_lines).strip()
+                    if self._is_valid_poem(poem):
+                        poems.append(poem)
+                
+                # Iniciar nuevo poema
+                current_poem_title = line
+                current_poem_lines = []
+                empty_line_count = 0
+                i += 1
+                continue
+            
+            elif is_year or is_metadata:
+                # Año o metadata: ignorar y continuar
+                i += 1
+                continue
+            
+            elif not line:
+                # Línea vacía
+                empty_line_count += 1
+                
+                # Si hay muchas líneas vacías consecutivas (3+), verificar si es fin de poema
+                if empty_line_count >= 3:
+                    # Mirar adelante para ver si hay un año o título (fin de poema)
+                    # o si continúa el contenido (parte del poema)
+                    look_ahead = 5
+                    found_year_or_title = False
+                    
+                    for j in range(i + 1, min(i + 1 + look_ahead, len(lines))):
+                        next_line = lines[j].strip()
+                        if not next_line:
+                            continue
+                        
+                        # Verificar si es año o título
+                        is_next_year = re.match(r'^\d{4}\s*[\(\)\?]*\s*$', next_line)
+                        is_next_title = (
+                            next_line and
+                            len(next_line) < 100 and 
+                            next_line.isupper() and 
+                            not next_line.endswith(',') and
+                            not next_line.endswith('.') and
+                            not next_line.endswith(';') and
+                            not next_line.endswith(':') and
+                            len(next_line.split()) < 15 and
+                            not re.match(r'^\d{4}', next_line) and
+                            not self._is_metadata_line(next_line)
+                        )
+                        
+                        if is_next_year or is_next_title:
+                            found_year_or_title = True
+                            break
+                        
+                        # Si encontramos contenido de poema, no es el fin
+                        if next_line and not self._is_metadata_line(next_line):
+                            # Es contenido, no cerrar el poema
+                            found_year_or_title = False
+                            break
+                    
+                    # Solo cerrar si encontramos año o título adelante
+                    if found_year_or_title:
+                        # Guardar poema actual si tiene contenido
+                        if current_poem_lines and len(current_poem_lines) >= 3:
+                            poem = '\n'.join(current_poem_lines).strip()
+                            if self._is_valid_poem(poem):
+                                poems.append(poem)
+                        current_poem_lines = []
+                        current_poem_title = None
+                        empty_line_count = 0
+                    # Si no, es parte del poema (muchas líneas vacías entre estrofas)
+                    elif current_poem_lines:
+                        # Agregar líneas vacías para preservar estructura
+                        for _ in range(min(empty_line_count, 2)):
+                            current_poem_lines.append('')
+                        empty_line_count = 0
+                # Si es solo 1-2 líneas vacías, es parte del poema (separador de estrofa)
+                elif empty_line_count <= 2 and current_poem_lines:
+                    # Agregar línea vacía para preservar estructura
+                    current_poem_lines.append('')
+                i += 1
+                continue
+            
+            else:
+                # Línea de contenido: agregar al poema actual
+                empty_line_count = 0
+                current_poem_lines.append(line)
+                i += 1
+        
+        # Guardar último poema si existe
+        if current_poem_lines and len(current_poem_lines) >= 3:
+            poem = '\n'.join(current_poem_lines).strip()
+            if self._is_valid_poem(poem):
+                poems.append(poem)
+        
+        # Eliminar duplicados y limpiar
+        unique_poems = []
+        seen = set()
+        for poem in poems:
+            # Normalizar para comparación
+            poem_normalized = re.sub(r'\s+', ' ', poem.lower())[:300]
+            if poem_normalized not in seen:
+                seen.add(poem_normalized)
+                unique_poems.append(poem)
+        
+        return unique_poems
+    
+    def _is_metadata_line(self, line: str) -> bool:
+        """Detecta si una línea es metadatos"""
+        line_lower = line.lower()
+        metadata_patterns = [
+            r'^(prólogo|prologo|prefacio|preface|dedicatoria|dedication)',
+            r'^(traductor|translator|autor|author|editor|publisher)',
+            r'^\d{4}\s*\.?\s*$',  # Años solos
+            r'^(parte|part|capítulo|chapter)\s+\d+',
+            r'^(índice|index|tabla de contenidos)',
+            r'^al (lector|reader)',
+            r'^(con los sentimientos|dedico|dedica)',
+            r'^(charles|baudelaire|neruda|whitman|rilke|rimbaud)',
+        ]
+        for pattern in metadata_patterns:
+            if re.match(pattern, line_lower):
+                return True
+        return False
+    
+    def _is_valid_poem(self, poem: str) -> bool:
+        """Valida si un texto es un poema válido"""
+        if len(poem) < 50:  # Muy corto
+            return False
+        
+        if len(poem) > 5000:  # Muy largo (probablemente prosa)
+            return False
+        
+        lines = poem.split('\n')
+        if len(lines) < 3:  # Muy pocas líneas
+            return False
+        
+        # Calcular estadísticas
+        line_lengths = [len(line.strip()) for line in lines if line.strip()]
+        if not line_lengths:
+            return False
+        
+        avg_length = sum(line_lengths) / len(line_lengths)
+        
+        # Si el promedio es muy largo, probablemente es prosa
+        if avg_length > 150:
+            return False
+        
+        # Debe tener al menos algunas líneas cortas (característica de poesía)
+        short_lines = [l for l in line_lengths if l < 100]
+        if len(short_lines) < len(line_lengths) * 0.3:  # Menos del 30% son cortas
+            return False
+        
+        return True
     
     def prepare_dataset(self, poems: List[str]) -> Dataset:
         """
