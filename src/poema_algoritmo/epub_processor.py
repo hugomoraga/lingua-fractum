@@ -73,8 +73,35 @@ class EPUBProcessor:
         """
         poems = []
         
+        # PRIMERO: Detectar si hay separadores explícitos === POEMA === o === POEMA X ===
+        separator_pattern = r'===+\s*POEMA\s+\d+\s*===+|===+\s*POEMA\s*===+'
+        if re.search(separator_pattern, text, re.IGNORECASE):
+            # Dividir por separadores explícitos
+            parts = re.split(separator_pattern, text, flags=re.IGNORECASE)
+            for part in parts:
+                part = part.strip()
+                if not part:
+                    continue
+                
+                # Limpiar el poema
+                cleaned_poem = self._clean_poem(part)
+                if cleaned_poem and len(cleaned_poem) > 30:
+                    poems.append(cleaned_poem)
+            
+            # Si encontramos poemas con separadores, retornarlos (ya limpios y únicos)
+            if poems:
+                # Eliminar duplicados
+                unique_poems = []
+                seen = set()
+                for poem in poems:
+                    poem_hash = hash(poem[:100])  # Primeros 100 caracteres
+                    if poem_hash not in seen:
+                        seen.add(poem_hash)
+                        unique_poems.append(poem)
+                return unique_poems
+        
+        # SEGUNDO: Si no hay separadores, usar lógica de detección por estructura
         # Dividir por líneas vacías dobles o más (párrafos/poemas)
-        # También dividir por patrones comunes de separación
         paragraphs = re.split(r'\n\s*\n+', text)
         
         for para in paragraphs:
@@ -203,6 +230,12 @@ class EPUBProcessor:
         """Limpia el texto extraído (más permisivo para preservar estructura)"""
         # Reemplazar tabs por espacios
         text = text.replace('\t', ' ')
+        
+        # Limpiar notas de pie de página (números entre corchetes como [59], [60])
+        text = re.sub(r'\[\d+\]', '', text)
+        
+        # Limpiar referencias a notas al final de líneas o párrafos
+        text = re.sub(r'\s*\[\d+\]\s*', ' ', text)
         
         # Normalizar espacios pero preservar saltos de línea
         lines = text.split('\n')

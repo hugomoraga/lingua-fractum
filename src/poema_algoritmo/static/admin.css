@@ -1,0 +1,680 @@
+/*
+Panel de Administración - Manifiesto Estético
+Oscuro, sobrio, geométrico, estructura editorial
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+    --carbon: #0B0B0D;
+    --smoke: #1A1A1C;
+    --ash: #3C3C43;
+    --cold-white: #E6E6EA;
+    --spectral-turquoise: #00C2C7;
+    --dark-magenta: #D0258F;
+    
+    --ui-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --spacing-unit: 16px;
+    --spacing-tight: calc(var(--spacing-unit) * 0.5);
+    --spacing-normal: var(--spacing-unit);
+    --spacing-wide: calc(var(--spacing-unit) * 2);
+    --spacing-extra: calc(var(--spacing-unit) * 4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--ui-font);
+    background: var(--carbon);
+    color: var(--cold-white);
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-extra) var(--spacing-normal);
+    min-height: 100vh;
+}
+
+/* Header: estructura editorial, sin decoración */
+.admin-header {
+    border-bottom: 1px solid var(--ash);
+    padding-bottom: var(--spacing-wide);
+    margin-bottom: var(--spacing-extra);
+}
+
+.admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--cold-white);
+    margin-bottom: var(--spacing-tight);
+}
+
+.admin-header p {
+    font-size: 0.875rem;
+    color: var(--cold-white);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-normal);
+    opacity: 0.7;
+}
+
+.admin-header a {
+    color: var(--cold-white);
+    text-decoration: none;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 120ms linear;
+    opacity: 0.8;
+}
+
+.admin-header a:hover {
+    color: var(--spectral-turquoise);
+}
+
+/* Navegación: estructura geométrica, líneas duras */
+.admin-nav {
+    display: flex;
+    gap: var(--spacing-tight);
+    margin-bottom: var(--spacing-extra);
+    border-bottom: 1px solid var(--ash);
+    padding-bottom: var(--spacing-tight);
+}
+
+.nav-btn {
+    padding: var(--spacing-tight) var(--spacing-normal);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--cold-white);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: color 120ms linear, border-color 120ms linear;
+    border-radius: 0;
+    opacity: 0.7;
+}
+
+.nav-btn:hover {
+    color: var(--cold-white);
+}
+
+.nav-btn.active {
+    color: var(--spectral-turquoise);
+    border-bottom-color: var(--spectral-turquoise);
+}
+
+/* Secciones: estructura editorial */
+.admin-section {
+    display: none;
+    padding: var(--spacing-extra) 0;
+    border-top: 1px solid var(--ash);
+    margin-bottom: var(--spacing-extra);
+}
+
+.admin-section.active {
+    display: block;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--cold-white);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-wide);
+    padding-bottom: var(--spacing-tight);
+    border-bottom: 1px solid var(--ash);
+    opacity: 0.9;
+}
+
+/* Items: estructura geométrica, sin sombras */
+.dataset-item, .model-item {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-normal);
+    margin-bottom: var(--spacing-normal);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 120ms linear;
+}
+
+.dataset-item:hover, .model-item:hover {
+    border-color: var(--spectral-turquoise);
+}
+
+.dataset-info, .model-info {
+    flex: 1;
+}
+
+.dataset-name-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-tight);
+    margin-bottom: var(--spacing-tight);
+}
+
+.dataset-name, .model-name {
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--cold-white);
+    letter-spacing: -0.01em;
+}
+
+.dataset-name-edit {
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--cold-white);
+    background: var(--carbon);
+    border: 1px solid var(--spectral-turquoise);
+    padding: var(--spacing-tight);
+    font-family: var(--ui-font);
+    min-width: 200px;
+    letter-spacing: -0.01em;
+}
+
+.dataset-name-edit:focus {
+    outline: none;
+    border-color: var(--spectral-turquoise);
+    box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2);
+}
+
+.dataset-meta, .model-meta {
+    font-size: 0.75rem;
+    color: var(--cold-white);
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+}
+
+/* Botones: geométricos, sin decoración */
+.btn-danger {
+    background: transparent;
+    border: 1px solid var(--ash);
+    color: var(--cold-white);
+    padding: var(--spacing-tight) var(--spacing-normal);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: border-color 120ms linear, color 120ms linear;
+    border-radius: 0;
+}
+
+.btn-danger:hover {
+    border-color: var(--dark-magenta);
+    color: var(--dark-magenta);
+}
+
+.btn-primary {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    color: var(--cold-white);
+    padding: var(--spacing-normal);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: border-color 120ms linear, background 120ms linear;
+    border-radius: 0;
+}
+
+.btn-primary:hover {
+    border-color: var(--spectral-turquoise);
+    background: var(--carbon);
+}
+
+/* Upload: estructura geométrica, umbral conceptual */
+.upload-area {
+    border: 1px dashed var(--ash);
+    padding: var(--spacing-extra);
+    text-align: center;
+    margin-bottom: var(--spacing-wide);
+    cursor: pointer;
+    transition: border-color 120ms linear, background 120ms linear;
+    background: var(--smoke);
+}
+
+.upload-area:hover {
+    border-color: var(--spectral-turquoise);
+    background: var(--carbon);
+}
+
+.upload-area.dragover {
+    border-color: var(--spectral-turquoise);
+    background: var(--carbon);
+    border-style: solid;
+}
+
+.upload-area p {
+    font-size: 0.75rem;
+    color: var(--cold-white);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+/* Acciones de datasets */
+.datasets-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-extra);
+    margin-bottom: var(--spacing-extra);
+}
+
+.action-group {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-wide);
+}
+
+.subsection-title {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--cold-white);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-normal);
+    padding-bottom: var(--spacing-tight);
+    border-bottom: 1px solid var(--ash);
+    opacity: 0.9;
+}
+
+.poem-form {
+    display: grid;
+    gap: var(--spacing-normal);
+}
+
+.poem-form textarea {
+    font-family: var(--ui-font);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.dataset-select-group {
+    display: flex;
+    gap: var(--spacing-tight);
+}
+
+.dataset-select-group select {
+    flex: 1;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--ash);
+    color: var(--cold-white);
+    padding: var(--spacing-tight) var(--spacing-normal);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: border-color 120ms linear, color 120ms linear;
+    border-radius: 0;
+    white-space: nowrap;
+}
+
+.btn-secondary:hover {
+    border-color: var(--spectral-turquoise);
+    color: var(--spectral-turquoise);
+}
+
+.dataset-name-group {
+    display: flex;
+    gap: var(--spacing-tight);
+}
+
+.dataset-name-group input {
+    flex: 1;
+}
+
+.dataset-actions {
+    display: flex;
+    gap: var(--spacing-tight);
+}
+
+/* Visualizador de dataset */
+.dataset-viewer {
+    margin-top: var(--spacing-extra);
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-wide);
+}
+
+.viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-wide);
+    padding-bottom: var(--spacing-normal);
+    border-bottom: 1px solid var(--ash);
+}
+
+.viewer-actions {
+    display: flex;
+    gap: var(--spacing-tight);
+}
+
+.poems-list {
+    display: grid;
+    gap: var(--spacing-normal);
+}
+
+.poem-item {
+    background: var(--carbon);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-normal);
+    transition: border-color 120ms linear, background-color 120ms linear;
+}
+
+.poem-item:hover {
+    border-color: var(--spectral-turquoise);
+}
+
+.poem-item.selectable {
+    cursor: pointer;
+}
+
+.poem-item.selectable:hover {
+    background: rgba(64, 224, 208, 0.05);
+    border-color: var(--spectral-turquoise);
+}
+
+.poem-item.selected {
+    background: rgba(64, 224, 208, 0.1);
+    border-color: var(--spectral-turquoise);
+    border-width: 2px;
+}
+
+.poem-item.selected:hover {
+    background: rgba(64, 224, 208, 0.15);
+}
+
+.poem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-normal);
+    font-size: 0.75rem;
+    color: var(--cold-white);
+    opacity: 0.7;
+    gap: var(--spacing-normal);
+}
+
+.btn-secondary.active {
+    background: var(--spectral-turquoise);
+    color: var(--carbon);
+    border-color: var(--spectral-turquoise);
+}
+
+.poem-number {
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.poem-length {
+    font-variant-numeric: tabular-nums;
+}
+
+.poem-item-actions {
+    display: flex;
+    gap: var(--spacing-tight);
+}
+
+.poem-content {
+    font-family: var(--ui-font);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--cold-white);
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow: hidden;
+    position: relative;
+}
+
+.poem-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, var(--carbon));
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-wide);
+    padding-top: var(--spacing-normal);
+    border-top: 1px solid var(--ash);
+}
+
+.pagination-info {
+    font-size: 0.75rem;
+    color: var(--cold-white);
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Modal de edición */
+.edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 11, 13, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-extra);
+}
+
+.edit-modal-content {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-wide);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-normal);
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-normal);
+    border-bottom: 1px solid var(--ash);
+}
+
+.edit-modal-header h3 {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--cold-white);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.9;
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: var(--spacing-normal);
+    justify-content: flex-end;
+}
+
+/* Formulario: estructura editorial */
+.training-form {
+    display: grid;
+    gap: var(--spacing-wide);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-tight);
+}
+
+.form-group label {
+    font-weight: 400;
+    color: var(--cold-white);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.form-group input, .form-group select {
+    padding: var(--spacing-normal);
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    color: var(--cold-white);
+    font-family: var(--ui-font);
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: border-color 120ms linear, background 120ms linear;
+    border-radius: 0;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--spectral-turquoise);
+    background: var(--carbon);
+}
+
+/* Estado de entrenamiento: estructura editorial */
+.training-status {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-normal);
+    margin-top: var(--spacing-wide);
+}
+
+.training-status h3 {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--cold-white);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-normal);
+    opacity: 0.9;
+}
+
+.training-status p {
+    font-size: 0.875rem;
+    color: var(--cold-white);
+    font-weight: 400;
+    margin-bottom: var(--spacing-tight);
+    font-variant-numeric: tabular-nums;
+}
+
+.status-training {
+    border-left: 2px solid var(--spectral-turquoise);
+}
+
+.status-completed {
+    border-left: 2px solid var(--spectral-turquoise);
+}
+
+.status-error {
+    border-left: 2px solid var(--dark-magenta);
+}
+
+/* Formulario: grid geométrico */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-normal);
+}
+
+/* Estadísticas: estructura geométrica */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-normal);
+    margin-top: var(--spacing-wide);
+}
+
+.stat-card {
+    background: var(--smoke);
+    border: 1px solid var(--ash);
+    padding: var(--spacing-wide);
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--cold-white);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-normal);
+    opacity: 0.7;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--cold-white);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* Responsive: mantener estructura */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: var(--spacing-wide) var(--spacing-normal);
+    }
+    
+    .admin-nav {
+        flex-wrap: wrap;
+    }
+    
+    .datasets-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dataset-item, .model-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-normal);
+    }
+    
+    .btn-danger {
+        width: 100%;
+    }
+}
+

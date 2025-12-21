@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>~ Panel de Administración</h1>
+            <p>Gestión de datasets y modelos</p>
+            <a href="/">← Volver</a>
+        </div>
+        
+        <nav class="admin-nav">
+            <button class="nav-btn active" onclick="showSection('datasets')">Datasets</button>
+            <button class="nav-btn" onclick="showSection('training')">Entrenamiento</button>
+            <button class="nav-btn" onclick="showSection('models')">Modelos</button>
+            <button class="nav-btn" onclick="showSection('stats')">Estadísticas</button>
+        </nav>
+        
+        <!-- Sección de Datasets -->
+        <section id="datasets-section" class="admin-section active">
+            <h2 class="section-title">Datasets</h2>
+            
+            <div class="datasets-actions">
+                <div class="action-group">
+                    <h3 class="subsection-title">Agregar Poema Manualmente</h3>
+                    <form id="add-poem-form" class="poem-form">
+                        <div class="form-group">
+                            <label for="poem-dataset-select">Dataset</label>
+                            <div class="dataset-select-group">
+                                <select id="poem-dataset-select" required>
+                                    <option value="">Cargando...</option>
+                                </select>
+                                <button type="button" class="btn-secondary" id="create-dataset-btn">Nuevo</button>
+                            </div>
+                        </div>
+                        <div class="form-group" id="new-dataset-group" style="display: none;">
+                            <label for="new-dataset-name">Nombre del nuevo dataset</label>
+                            <div class="dataset-name-group">
+                                <input type="text" id="new-dataset-name" placeholder="mi_dataset">
+                                <button type="button" class="btn-secondary" id="create-dataset-confirm">Crear</button>
+                                <button type="button" class="btn-danger" id="cancel-create-dataset">Cancelar</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="poem-text">Poema</label>
+                            <textarea id="poem-text" rows="12" placeholder="Pega aquí el poema completo..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Agregar Poema</button>
+                    </form>
+                </div>
+                
+                <div class="action-group">
+                    <h3 class="subsection-title">Subir Archivo</h3>
+                    <div class="upload-area" id="upload-area">
+                        <p>Arrastra archivo .txt o .epub o selecciona</p>
+                        <input type="file" id="file-input" accept=".txt,.epub" style="display: none;">
+                    </div>
+                    <div id="epub-name-group" style="display: none; margin-top: var(--spacing-normal);">
+                        <label for="epub-dataset-name">Nombre del dataset (opcional)</label>
+                        <div class="dataset-name-group">
+                            <input type="text" id="epub-dataset-name" placeholder="nombre_dataset">
+                            <button type="button" class="btn-primary" id="process-epub-btn">Procesar EPUB</button>
+                            <button type="button" class="btn-danger" id="cancel-epub-btn">Cancelar</button>
+                        </div>
+                        <small style="opacity: 0.7; font-size: 0.75rem; display: block; margin-top: var(--spacing-tight);">Si no especificas, se usará el nombre del EPUB</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="datasets-list">
+                <p>Cargando...</p>
+            </div>
+            
+            <!-- Visualizador de Dataset -->
+            <div id="dataset-viewer" class="dataset-viewer" style="display: none;">
+                <div class="viewer-header">
+                    <h3 class="subsection-title" id="viewer-title">Dataset</h3>
+                    <div class="viewer-actions">
+                        <button class="btn-secondary" id="selection-mode-btn">Modo selección</button>
+                        <button class="btn-secondary" id="select-all-btn" style="display: none;">Seleccionar todos</button>
+                        <button class="btn-secondary" id="deselect-all-btn" style="display: none;">Deseleccionar todos</button>
+                        <button class="btn-danger" id="delete-selected-btn" style="display: none;">Eliminar seleccionados</button>
+                        <button class="btn-secondary" id="clean-dataset-btn">Limpiar Notas</button>
+                        <button class="btn-danger" id="close-viewer-btn">Cerrar</button>
+                    </div>
+                </div>
+                <div id="poems-list" class="poems-list">
+                    <p>Cargando poemas...</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección de Entrenamiento -->
+        <section id="training-section" class="admin-section">
+            <h2 class="section-title">Entrenamiento</h2>
+            
+            <form class="training-form" id="training-form">
+                <div class="form-group">
+                    <label for="poems-file">Archivo de poemas</label>
+                    <select id="poems-file" required>
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="output-dir">Directorio de salida</label>
+                    <input type="text" id="output-dir" value="models/poetry_model" required>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="epochs">Épocas</label>
+                        <input type="number" id="epochs" value="5" min="1" max="20" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="batch-size">Batch Size</label>
+                        <input type="number" id="batch-size" value="4" min="1" max="16" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="learning-rate">Learning Rate</label>
+                        <input type="number" id="learning-rate" value="0.00005" step="0.00001" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="base-model">Modelo base (opcional)</label>
+                    <input type="text" id="base-model" placeholder="gpt2 o vacío para auto">
+                </div>
+                
+                <button type="submit" class="btn-primary">Iniciar Entrenamiento</button>
+            </form>
+            
+            <div id="training-status" class="training-status" style="display: none;">
+                <h3>Estado</h3>
+                <div id="training-status-content"></div>
+            </div>
+        </section>
+        
+        <!-- Sección de Modelos -->
+        <section id="models-section" class="admin-section">
+            <h2 class="section-title">Modelos</h2>
+            <div id="models-list">
+                <p>Cargando...</p>
+            </div>
+        </section>
+        
+        <!-- Sección de Estadísticas -->
+        <section id="stats-section" class="admin-section">
+            <h2 class="section-title">Estadísticas</h2>
+            <div id="stats-content" class="stats-grid">
+                <p>Cargando...</p>
+            </div>
+        </section>
+    </div>
+    
+    <script src="/static/admin.js"></script>
+</body>
+</html>

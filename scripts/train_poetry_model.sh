@@ -48,7 +48,7 @@ echo -e "${GREEN}[2/2]${NC} Entrenando modelo..."
 echo ""
 poetry run python -m poema_algoritmo.train_model "$POEMS_FILE" \
     -o "$MODEL_DIR" \
-    -e 3 \
+    -e 5 \
     --batch-size 4 \
     --learning-rate 5e-5
 

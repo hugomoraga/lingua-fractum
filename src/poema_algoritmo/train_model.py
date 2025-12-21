@@ -20,13 +20,18 @@ class PoetryTrainer:
     
     def __init__(
         self,
-        base_model: str = "gpt2",
+        base_model: str = None,
         output_dir: str = "models/poetry_model",
         max_length: int = 512
     ):
-        self.base_model = base_model
         self.output_dir = output_dir
         self.max_length = max_length
+        
+        # Si no se especifica modelo base, intentar cargar uno en español primero
+        if base_model is None:
+            base_model = self._get_best_spanish_model()
+        
+        self.base_model = base_model
         
         # Cargar modelo y tokenizer base
         print(f"Cargando modelo base: {base_model}")
@@ -41,6 +46,29 @@ class PoetryTrainer:
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         
         print(f"✓ Modelo cargado. Vocabulario: {len(self.tokenizer)} tokens")
+    
+    def _get_best_spanish_model(self) -> str:
+        """
+        Intenta encontrar el mejor modelo base en español disponible.
+        Si no encuentra ninguno, usa GPT2 como fallback.
+        """
+        spanish_models = [
+            "DeepESP/gpt2-spanish",
+            "datasets/gpt2-spanish",
+        ]
+        
+        for model_name in spanish_models:
+            try:
+                # Intentar cargar el tokenizer para verificar si existe
+                tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+                print(f"✓ Modelo en español encontrado: {model_name}")
+                return model_name
+            except Exception:
+                continue
+        
+        print("⚠ No se encontró modelo en español. Usando GPT2 (inglés) como base.")
+        print("  Nota: Para mejores resultados, considera usar un modelo base en español.")
+        return "gpt2"
     
     def load_poems_from_file(self, file_path: str) -> List[str]:
         """
@@ -291,17 +319,113 @@ class PoetryTrainer:
         
         return True
     
-    def prepare_dataset(self, poems: List[str]) -> Dataset:
+    def prepare_dataset(self, poems: List[str], include_directives: bool = True) -> Dataset:
         """
         Prepara el dataset para entrenamiento
         
         Args:
             poems: Lista de poesías
+            include_directives: Si True, agrega formato con directrices para entrenar al modelo
+                               a seguir instrucciones
             
         Returns:
             Dataset preparado
         """
         print("Preparando dataset...")
+        
+        # Si include_directives, crear ejemplos con formato de directrices
+        if include_directives:
+            from .poetry_agent import PoetryAgent
+            import random
+            agent = PoetryAgent()
+            formatted_poems = []
+            
+            print("  Agregando formato con directrices para entrenar seguimiento de instrucciones...")
+            
+            # Palabras clave comunes en poesía para detectar temas
+            emotion_keywords = ['triste', 'alegre', 'melancólico', 'nostálgico', 'amoroso', 'oscuro', 'sereno']
+            style_keywords = ['soneto', 'haiku', 'verso libre', 'romántico', 'moderno']
+            
+            for poem in poems:
+                # Extraer conceptos y características del poema
+                lines = poem.split('\n')
+                poem_lower = poem.lower()
+                
+                # Detectar concepto principal (primeras palabras significativas)
+                first_line = lines[0].strip() if lines else ""
+                concept = None
+                
+                # Estrategia 1: Si la primera línea es corta, es probablemente un título/concepto
+                if first_line and len(first_line.split()) <= 5 and len(first_line) < 50:
+                    concept = first_line
+                else:
+                    # Estrategia 2: Extraer palabras clave del poema
+                    words = poem.split()[:5]
+                    # Filtrar palabras comunes
+                    stop_words = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'en', 'y', 'que', 'a'}
+                    meaningful_words = [w for w in words if w.lower() not in stop_words and len(w) > 3]
+                    if meaningful_words:
+                        concept = ' '.join(meaningful_words[:2])  # Tomar 1-2 palabras significativas
+                
+                if not concept:
+                    # Fallback: usar primeras palabras
+                    words = poem.split()[:3]
+                    concept = ' '.join(words) if words else "poesía"
+                
+                # Detectar características del poema
+                detected_emotion = None
+                detected_style = None
+                
+                for emotion in emotion_keywords:
+                    if emotion in poem_lower:
+                        detected_emotion = emotion
+                        break
+                
+                for style in style_keywords:
+                    if style in poem_lower:
+                        detected_style = style
+                        break
+                
+                # Crear múltiples variantes de formato de instrucción
+                variants = []
+                
+                # Variante 1: Simple
+                variants.append(f"Tema: {concept}\n\nPoema sobre {concept}:\n\n{poem}")
+                
+                # Variante 2: Con instrucción explícita
+                variants.append(f"Escribe un poema sobre {concept}:\n\n{poem}")
+                
+                # Variante 3: Con formato estructurado
+                if detected_emotion:
+                    variants.append(f"Tema: {concept}\nTono: {detected_emotion}\n\nPoema sobre {concept}:\n\n{poem}")
+                
+                if detected_style:
+                    variants.append(f"Tema: {concept}\nEstilo: {detected_style}\n\nPoema sobre {concept}:\n\n{poem}")
+                
+                # Variante 4: Instrucción en lenguaje natural
+                instruction = f"escribe un poema sobre {concept}"
+                if detected_emotion:
+                    instruction += f" {detected_emotion}"
+                variants.append(f"Instrucción: {instruction}\n\nPoema:\n\n{poem}")
+                
+                # Seleccionar una variante aleatoria
+                formatted_poems.append(random.choice(variants))
+            
+            # Mezclar: 80% con directrices, 20% sin directrices (para mantener flexibilidad)
+            mixed_poems = []
+            for i, poem in enumerate(poems):
+                if i < len(formatted_poems):
+                    # 80% con formato de instrucciones, 20% sin formato
+                    if random.random() < 0.8:
+                        mixed_poems.append(formatted_poems[i])
+                    else:
+                        mixed_poems.append(poem)
+                else:
+                    mixed_poems.append(poem)
+            
+            poems = mixed_poems
+            print(f"  ✓ Dataset preparado con formato de instrucciones (80% con formato, 20% sin formato)")
+            print(f"  ✓ Variantes de formato: simple, estructurado, lenguaje natural")
         
         # Tokenizar todas las poesías
         def tokenize_function(examples):
@@ -339,7 +463,7 @@ class PoetryTrainer:
     def train(
         self,
         dataset: Dataset,
-        num_epochs: int = 3,
+        num_epochs: int = 5,
         batch_size: int = 4,
         learning_rate: float = 5e-5,
         save_steps: int = 500,
@@ -416,7 +540,7 @@ class PoetryTrainer:
     def train_from_file(
         self,
         poems_file: str,
-        num_epochs: int = 3,
+        num_epochs: int = 5,
         batch_size: int = 4,
         learning_rate: float = 5e-5
     ):
@@ -424,15 +548,33 @@ class PoetryTrainer:
         Entrena desde un archivo de poesías (método de conveniencia)
         
         Args:
-            poems_file: Archivo con poesías
+            poems_file: Archivo con poesías (puede ser una lista de archivos separados por comas)
             num_epochs: Número de épocas
             batch_size: Tamaño del batch
             learning_rate: Tasa de aprendizaje
         """
-        poems = self.load_poems_from_file(poems_file)
+        # Si hay múltiples archivos separados por comas, combinarlos
+        if ',' in poems_file:
+            file_list = [f.strip() for f in poems_file.split(',')]
+            print(f"Cargando poemas de {len(file_list)} archivos...")
+            all_poems = []
+            for file_path in file_list:
+                if os.path.exists(file_path):
+                    poems = self.load_poems_from_file(file_path)
+                    all_poems.extend(poems)
+                    print(f"  ✓ {len(poems)} poemas de {file_path}")
+                else:
+                    print(f"  ⚠ Archivo no encontrado: {file_path}")
+            poems = all_poems
+        else:
+            poems = self.load_poems_from_file(poems_file)
         
         if len(poems) < 10:
             print("⚠ Advertencia: Muy pocas poesías. Se recomiendan al menos 50-100 para un buen entrenamiento.")
+        elif len(poems) < 50:
+            print("⚠ Advertencia: Pocas poesías. Se recomiendan al menos 100-200 para mejor calidad.")
+        else:
+            print(f"✓ Dataset con {len(poems)} poemas - tamaño adecuado")
         
         dataset = self.prepare_dataset(poems)
         self.train(dataset, num_epochs, batch_size, learning_rate)
@@ -446,10 +588,10 @@ def main():
     parser.add_argument('poems_file', help='Archivo con poesías (formato texto)')
     parser.add_argument('-o', '--output', default='models/poetry_model',
                        help='Directorio de salida (default: models/poetry_model)')
-    parser.add_argument('-b', '--base-model', default='gpt2',
-                       help='Modelo base (default: gpt2)')
-    parser.add_argument('-e', '--epochs', type=int, default=3,
-                       help='Número de épocas (default: 3)')
+    parser.add_argument('-b', '--base-model', default=None,
+                       help='Modelo base (default: intenta usar modelo en español, luego gpt2)')
+    parser.add_argument('-e', '--epochs', type=int, default=5,
+                       help='Número de épocas (default: 5, recomendado: 5-10 para mejor calidad)')
     parser.add_argument('--batch-size', type=int, default=4,
                        help='Tamaño del batch (default: 4)')
     parser.add_argument('--learning-rate', type=float, default=5e-5,
